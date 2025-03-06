@@ -9,11 +9,12 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/ogen-go/ogen v1.2.2
 	github.com/testcontainers/testcontainers-go v0.30.0
-	github.com/walletera/eventskit v0.0.2
+	github.com/walletera/accounts v0.0.1
+	github.com/walletera/eventskit v0.0.4
 	github.com/walletera/logs-watcher v0.0.3
 	github.com/walletera/mockserver-go-client v0.0.1
-	github.com/walletera/payments-types v0.0.9
-	github.com/walletera/werrors v0.0.6
+	github.com/walletera/payments-types v0.0.10
+	github.com/walletera/werrors v0.0.7
 	go.opentelemetry.io/otel v1.29.0
 	go.opentelemetry.io/otel/metric v1.29.0
 	go.opentelemetry.io/otel/trace v1.29.0
@@ -49,8 +50,10 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gofrs/uuid v4.3.1+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-memdb v1.3.4 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
@@ -76,7 +79,7 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
-	golang.org/x/exp v0.0.0-20230725093048-515e97ebf090 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
@@ -87,5 +90,3 @@ require (
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-
-replace github.com/walletera/payments-types v0.0.9 => /home/fedev/Code/walletera/payments-types

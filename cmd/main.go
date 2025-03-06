@@ -24,6 +24,7 @@ func main() {
     bindEnv := mustGetEnv("BIND_ENV")
     bindURL := mustGetEnv("BIND_URL")
     paymentsURL := mustGetEnv("PAYMENTS_URL")
+    accountsURL := mustGetEnv("PAYMENTS_URL")
     eventstoredbURL := mustGetEnv("EVENTSTOREDB_URL")
 
     app, err := app.NewApp(
@@ -34,6 +35,7 @@ func main() {
         app.WithBindEnv(bindEnv),
         app.WithBindUrl(bindURL),
         app.WithPaymentsUrl(paymentsURL),
+        app.WithAccountsUrl(accountsURL),
         app.WithESDBUrl(eventstoredbURL),
     )
     if err != nil {

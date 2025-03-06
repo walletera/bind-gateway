@@ -24,6 +24,7 @@ import (
 const (
     mockedBindServerUrl       = "http://localhost:2090/walletentidad-operaciones/v1/api/v1.201"
     mockedPaymentsServerUrl   = "http://localhost:2090"
+    mockedAccountsServerUrl   = "http://localhost:2090"
     eventStoreDBUrl           = "esdb://localhost:2113?tls=false"
     appKey                    = "app"
     appCtxCancelFuncKey       = "appCtxCancelFuncKey"
@@ -69,7 +70,7 @@ func afterScenarioHook(ctx context.Context, _ *godog.Scenario, err error) (conte
     return ctx, nil
 }
 
-func aRunningDinopayGateway(ctx context.Context) (context.Context, error) {
+func aRunningBindGateway(ctx context.Context) (context.Context, error) {
 
     //ctx, err := esdbByCategoryProjectionEnabled(ctx)
     //if err != nil {
@@ -96,6 +97,7 @@ func aRunningDinopayGateway(ctx context.Context) (context.Context, error) {
         app.WithRabbitmqPassword(rabbitmq.DefaultPassword),
         app.WithBindUrl(mockedBindServerUrl),
         app.WithPaymentsUrl(mockedPaymentsServerUrl),
+        app.WithAccountsUrl(mockedAccountsServerUrl),
         app.WithESDBUrl(eventStoreDBUrl),
         app.WithLogHandler(logHandler),
     )
@@ -136,7 +138,7 @@ func anEventstoreDBPersistentSubscriptionForCategory(ctx context.Context, catego
     return ctx, nil
 }
 
-func theDinopayGatewayProducesTheFollowingLog(ctx context.Context, logMsg string) (context.Context, error) {
+func theBindGatewayProducesTheFollowingLog(ctx context.Context, logMsg string) (context.Context, error) {
     logsWatcher := logsWatcherFromCtx(ctx)
     foundLogEntry := logsWatcher.WaitFor(logMsg, logsWatcherWaitForTimeout)
     if !foundLogEntry {

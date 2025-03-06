@@ -40,8 +40,8 @@ func (ev *EventsHandler) HandlePaymentCreated(ctx context.Context, paymentCreate
 
     bindResp, err := ev.bindClient.CreateCVUTrasfer(ctx,
         &api.CreateTransferRequest{
-            CvuOrigen:     paymentCreated.Data.Debtor.Value.RoutingKey.Value,
-            CbuCvuDestino: api.NewOptString(paymentCreated.Data.Beneficiary.Value.RoutingKey.Value),
+            CvuOrigen:     paymentCreated.Data.Debtor.Value.AccountDetails.Value.OneOf.CvuAccountDetails.Cvu.Value,
+            CbuCvuDestino: api.NewOptString(paymentCreated.Data.Beneficiary.Value.AccountDetails.Value.OneOf.CvuAccountDetails.Cvu.Value),
             CuitDestino:   api.OptString{},
             AliasDestino:  api.OptString{},
             Importe:       paymentCreated.Data.Amount,
@@ -85,7 +85,7 @@ func (ev *EventsHandler) HandlePaymentCreated(ctx context.Context, paymentCreate
         logattr.CorrelationId(paymentCreated.CorrelationID()),
         logattr.PaymentId(walleteraPaymentId.String()),
         logattr.BindOperationId(strconv.Itoa(successfullResp.OperacionId.Value)),
-        logattr.BindStatus(string(successfullResp.EstadoId.Value)),
+        logattr.BindStatus(int(successfullResp.EstadoId.Value)),
     )
 
     outboundPaymentCreated := outbound.PaymentCreated{

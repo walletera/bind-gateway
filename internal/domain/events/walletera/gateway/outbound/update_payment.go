@@ -16,7 +16,7 @@ func updatePaymentStatus(
     client *paymentsapi.Client,
     paymentId uuid.UUID,
     bindOperationId int,
-    bindOperationStatus string,
+    bindOperationStatus api.CreateTransferResponseEstadoId,
 ) werrors.WError {
     status, err := bindStatus2PaymentsStatus(bindOperationStatus)
     if err != nil {
@@ -38,34 +38,38 @@ func updatePaymentStatus(
     return handlePatchPaymentResponse(patchPaymentResp, patchPaymentErr)
 }
 
-func bindStatus2PaymentsStatus(dinopayStatus string) (paymentsapi.PaymentStatus, werrors.WError) {
+func bindStatus2PaymentsStatus(bindStatus api.CreateTransferResponseEstadoId) (paymentsapi.PaymentStatus, werrors.WError) {
     var status paymentsapi.PaymentStatus
-    switch dinopayStatus {
-    case string(api.CreateTransferResponseEstadoId1):
+    switch bindStatus {
+    case api.CreateTransferResponseEstadoId1:
         // A procesar
         status = paymentsapi.PaymentStatusDelivered
-    case string(api.CreateTransferResponseEstadoId2):
+    case api.CreateTransferResponseEstadoId2:
         // Aprobada
         status = paymentsapi.PaymentStatusConfirmed
-    case string(api.CreateTransferResponseEstadoId3):
+    case api.CreateTransferResponseEstadoId3:
         // Rechazada
         status = paymentsapi.PaymentStatusRejected
-    case string(api.CreateTransferResponseEstadoId4):
+    case api.CreateTransferResponseEstadoId4:
         // A consultar
         status = paymentsapi.PaymentStatusDelivered
-    case string(api.CreateTransferResponseEstadoId5):
+    case api.CreateTransferResponseEstadoId5:
         // Auditar
+        // No se pudo resolver el estado definitivo
+        // de la transferencia en línea durante cierto
+        // tiempo (30 seg). El estado definitivo
+        // sera resuelto manualmente.
         status = paymentsapi.PaymentStatusDelivered
-    case string(api.CreateTransferResponseEstadoId6):
+    case api.CreateTransferResponseEstadoId6:
         // Devuelta
         // TODO check how should we handle this status?
         status = paymentsapi.PaymentStatusConfirmed
-    case string(api.CreateTransferResponseEstadoId7):
+    case api.CreateTransferResponseEstadoId7:
         // Devuelta parcialmente
         // TODO check how should we handle this status?
         status = paymentsapi.PaymentStatusConfirmed
     default:
-        return "", werrors.NewNonRetryableInternalError(fmt.Sprintf("unknown bind payment status %s", dinopayStatus))
+        return "", werrors.NewNonRetryableInternalError(fmt.Sprintf("unknown bind payment status %d", bindStatus))
     }
     return status, nil
 }

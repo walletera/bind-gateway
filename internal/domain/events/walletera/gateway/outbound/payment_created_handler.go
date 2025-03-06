@@ -23,6 +23,6 @@ func (h *PaymentCreatedHandler) Handle(ctx context.Context, outboundPaymentCreat
         h.client,
         outboundPaymentCreated.PaymentId,
         outboundPaymentCreated.BindPaymentId,
-        string(outboundPaymentCreated.BindPaymentStatus),
+        outboundPaymentCreated.BindPaymentStatus,
     )
 }

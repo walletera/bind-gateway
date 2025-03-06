@@ -38,15 +38,15 @@ func TestPaymentCreatedEventProcessing(t *testing.T) {
 
 func InitializeProcessWithdrawalCreatedScenario(ctx *godog.ScenarioContext) {
     ctx.Before(beforeScenarioHook)
-    ctx.Given(`^a running bind-gateway$`, aRunningDinopayGateway)
+    ctx.Given(`^a running bind-gateway$`, aRunningBindGateway)
     ctx.Given(`^a PaymentCreated event:$`, aPaymentCreatedEvent)
-    ctx.Given(`^a dinopay endpoint to create payments:$`, aDinopayEndpointToCreatePayments)
+    ctx.Given(`^a bind endpoint to create transfers:$`, aBindEndpointToCreateTransfers)
     ctx.Given(`^a payments endpoint to update payments:$`, aPaymentsEndpointToUpdatePayments)
     ctx.When(`^the event is published$`, theEventIsPublished)
     ctx.Then(`^the bind-gateway creates the corresponding payment on the Bind API$`, theDinopayGatewayCreatesTheCorrespondingPaymentOnTheDinoPayAPI)
     ctx.Then(`^the bind-gateway updates the payment on payments service$`, theDinopayGatewayUpdatesThePaymentOnPaymentsService)
     ctx.Then(`the bind-gateway fails creating the corresponding payment on the DinoPay API$`, theDinoPayGatewayFailsCreatingTheCorrespondingPayment)
-    ctx.Then(`^the bind-gateway produces the following log:$`, theDinopayGatewayProducesTheFollowingLog)
+    ctx.Then(`^the bind-gateway produces the following log:$`, theBindGatewayProducesTheFollowingLog)
     ctx.After(afterScenarioHook)
 }
 
@@ -57,7 +57,7 @@ func aPaymentCreatedEvent(ctx context.Context, event *godog.DocString) (context.
     return context.WithValue(ctx, rawWithdrawalCreatedEventKey, []byte(event.Content)), nil
 }
 
-func aDinopayEndpointToCreatePayments(ctx context.Context, mockserverExpectation *godog.DocString) (context.Context, error) {
+func aBindEndpointToCreateTransfers(ctx context.Context, mockserverExpectation *godog.DocString) (context.Context, error) {
     return createMockServerExpectation(ctx, mockserverExpectation, bindEndpointCreatePaymentsExpectationIdKey)
 }
 

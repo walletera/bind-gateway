@@ -86,7 +86,7 @@ func newServerConfig(opts ...ServerOption) serverConfig {
 			status := http.StatusMethodNotAllowed
 			if r.Method == "OPTIONS" {
 				w.Header().Set("Access-Control-Allow-Methods", allowed)
-				w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+				w.Header().Set("Access-Control-Allow-Headers", "Content-TransferType")
 				status = http.StatusNoContent
 			} else {
 				w.Header().Set("Allow", allowed)

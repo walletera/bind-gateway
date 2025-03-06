@@ -18,8 +18,8 @@ func BindOperationId(bindOperationId string) slog.Attr {
     return slog.String("bind_operation_id", bindOperationId)
 }
 
-func BindStatus(bindStatus string) slog.Attr {
-    return slog.String("bind_status", bindStatus)
+func BindStatus(bindStatus int) slog.Attr {
+    return slog.Int("bind_status", bindStatus)
 }
 
 func EventType(eventType string) slog.Attr {
@@ -32,4 +32,8 @@ func Error(err string) slog.Attr {
 
 func CorrelationId(correlationId string) slog.Attr {
     return slog.String("correlation_id", correlationId)
+}
+
+func StreamName(streamName string) slog.Attr {
+    return slog.String("stream_name", streamName)
 }

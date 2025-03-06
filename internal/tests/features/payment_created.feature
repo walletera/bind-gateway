@@ -8,7 +8,7 @@ Feature: process PaymentCreated event
   Background: the bind-gateway is up and running
     Given a running bind-gateway
 
-  Scenario: payment created event is processed successfully
+  Scenario: an outbound payment with beneficiary account type cvu is processed successfully
     Given a PaymentCreated event:
     """json
     {
@@ -22,22 +22,28 @@ Feature: process PaymentCreated event
         "customerId": "2432318c-4ff3-4ac0-b734-9b61779e2e46",
         "status": "pending",
         "debtor": {
-          "bankName": "LetsBit",
-          "bankId": "letsbit",
-          "accountHolder": "Ron Doe",
-          "routingKey": "0003252627188236545234"
+          "institutionName": "Lemon Cash",
+          "currency": "USD",
+          "accountType": "cvu",
+          "accountDetails": {
+              "cvu": "0003252627188236545234",
+              "cuit": "23112223339"
+          }
         },
         "beneficiary": {
-          "bankName": "LetsBit",
-          "bankId": "letsbit",
-          "accountHolder": "Richard Roe",
-          "routingKey": "0004252627182736545234"
+          "institutionName": "LetsBit",
+          "currency": "USD",
+          "accountType": "cvu",
+          "accountDetails": {
+              "cvu": "0004252627182736545234",
+              "cuit": "23112223339"
+          }
         },
         "createdAt": "2024-10-04T00:00:00Z"
       }
     }
     """
-    And  a dinopay endpoint to create payments:
+    And  a bind endpoint to create transfers:
     # the json below is a mockserver expectation
     """json
     {
@@ -161,7 +167,7 @@ Feature: process PaymentCreated event
 #      }
 #    }
 #    """
-#    And  a dinopay endpoint to create payments:
+#    And  a bind endpoint to create transfers:
 #    # the json below is a mockserver expectation
 #    """json
 #    {

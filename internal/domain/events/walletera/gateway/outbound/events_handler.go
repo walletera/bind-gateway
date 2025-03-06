@@ -28,7 +28,7 @@ func NewEventsHandlerImpl(db eventsourcing.DB, client *paymentsapi.Client, logge
         db:             db,
         paymentsClient: client,
         deserializer:   NewEventsDeserializer(),
-        logger:         logger.With(logattr.Component("dinopay.EventsHandlerImpl")),
+        logger:         logger.With(logattr.Component("bind.EventsHandlerImpl")),
     }
 }
 
