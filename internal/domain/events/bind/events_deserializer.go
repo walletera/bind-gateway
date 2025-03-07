@@ -30,7 +30,7 @@ func (e EventsDeserializer) Deserialize(rawEvent []byte) (events.Event[EventsHan
     }
     switch webhookEvent.Type {
     case "transfer.cvu.received":
-        var inboundTransferCreated InboundTransferCreated
+        var inboundTransferCreated InboundTransferReceived
         err = json.Unmarshal(webhookEvent.Data, &inboundTransferCreated)
         if err != nil {
             return nil, fmt.Errorf("failed unmarshalling bind webhook event of type transfer.cvu.received: %w", err)

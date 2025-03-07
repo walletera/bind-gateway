@@ -5,9 +5,7 @@ import (
     "fmt"
     "log"
 
-    "github.com/google/uuid"
     "github.com/walletera/eventskit/events"
-    paymentsapi "github.com/walletera/payments-types/api"
 )
 
 type EventsDeserializer struct {
@@ -25,12 +23,12 @@ func (d *EventsDeserializer) Deserialize(rawPayload []byte) (events.Event[Events
     }
     switch event.Type {
     case "InboundPaymentReceived":
-        var payment paymentsapi.Payment
-        err := json.Unmarshal(event.Data, &payment)
+        var paymentReceived PaymentReceived
+        err := json.Unmarshal(event.Data, &paymentReceived)
         if err != nil {
             log.Printf("error deserializing InboundPaymentReceived event data %s: %s", event.Data, err.Error())
         }
-        return NewPaymentReceived(uuid.MustParse(event.CorrelationID), payment), nil
+        return paymentReceived, nil
     default:
         return nil, fmt.Errorf("unexpected event type: %s", event.Type)
     }

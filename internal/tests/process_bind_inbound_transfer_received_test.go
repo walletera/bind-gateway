@@ -17,13 +17,13 @@ const (
     getAccountEndpointExpectationKey            = "getAccountEndpointExpectationKey"
 )
 
-func TestBindPaymentCreatedEventProcessing(t *testing.T) {
+func TestBindInboundTransferReceivedProcessing(t *testing.T) {
 
     suite := godog.TestSuite{
-        ScenarioInitializer: InitializeProcessDinopayPaymentCreatedScenario,
+        ScenarioInitializer: InitializeProcessBindInboundTransferReceivedScenario,
         Options: &godog.Options{
             Format:   "pretty",
-            Paths:    []string{"features/bind_payment_created.feature"},
+            Paths:    []string{"features/bind_inbound_transfer_received.feature"},
             TestingT: t, // Testing instance that will run subtests.
         },
     }
@@ -33,7 +33,7 @@ func TestBindPaymentCreatedEventProcessing(t *testing.T) {
     }
 }
 
-func InitializeProcessDinopayPaymentCreatedScenario(ctx *godog.ScenarioContext) {
+func InitializeProcessBindInboundTransferReceivedScenario(ctx *godog.ScenarioContext) {
     ctx.Before(beforeScenarioHook)
     ctx.Step(`^a running bind-gateway$`, aRunningBindGateway)
     ctx.Step(`^a Bind transfer.cvu.received event:$`, aBindTransferReceivedEvent)

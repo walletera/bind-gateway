@@ -4,7 +4,7 @@ Feature: process Bind webhook event transfer.cvu.received
   Background: the bind-gateway is up and running
     Given a running bind-gateway
 
-  Scenario: a bind inbound transfer is processed successfully
+  Scenario: a bind inbound transfer received is processed successfully
     Given a Bind transfer.cvu.received event:
     """json
     {
@@ -168,7 +168,7 @@ Feature: process Bind webhook event transfer.cvu.received
     Then the bind-gateway creates the corresponding payment on the Payments API
     And the bind-gateway produces the following log:
     """
-    bind event InboundTransferCreated processed successfully
+    bind event InboundTransferReceived processed successfully
     """
     And the bind-gateway produces the following log:
     """

@@ -281,12 +281,8 @@ func createBindMessageProcessor(app *App) (*messages.Processor[bind.EventsHandle
     if err != nil {
         return nil, fmt.Errorf("failed creating payments api client: %w", err)
     }
-    accountsapi, err := accountsapi.NewClient(app.accountsUrl)
-    if err != nil {
-        return nil, fmt.Errorf("failed creating accounts api client: %w", err)
-    }
     webhookConsumer := webhook.NewServer(WebhookServerPort, webhook.WithLogger(app.logger.With(logattr.Component("webhook.Server"))))
-    eventsHandler := bind.NewEventsHandlerImpl(eventsDB, paymentsClient, accountsapi, app.logger)
+    eventsHandler := bind.NewEventsHandlerImpl(eventsDB, paymentsClient, app.logger)
     return messages.NewProcessor[bind.EventsHandler](
         webhookConsumer,
         bind.NewEventsDeserializer(),
@@ -300,6 +296,10 @@ func createBindMessageProcessor(app *App) (*messages.Processor[bind.EventsHandle
 }
 
 func createGatewayInboundMessageProcessor(app *App) (*messages.Processor[inbound.EventsHandler], error) {
+    accountsClient, err := accountsapi.NewClient(app.accountsUrl)
+    if err != nil {
+        return nil, fmt.Errorf("failed creating accounts api client: %w", err)
+    }
 
     paymentsClient, err := paymentsapi.NewClient(app.paymentsUrl, paymentsauth.NewSecuritySource())
     if err != nil {
@@ -314,8 +314,7 @@ func createGatewayInboundMessageProcessor(app *App) (*messages.Processor[inbound
     if err != nil {
         return nil, fmt.Errorf("failed creating esdb messages consumer: %w", err)
     }
-
-    eventsHandler := inbound.NewEventsHandlerImpl(paymentsClient, app.logger)
+    eventsHandler := inbound.NewEventsHandlerImpl(accountsClient, paymentsClient, app.logger)
     return messages.NewProcessor[inbound.EventsHandler](
         esdbMessagesConsumer,
         inbound.NewEventsDeserializer(),

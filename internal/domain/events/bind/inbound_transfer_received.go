@@ -8,9 +8,9 @@ import (
     "github.com/walletera/werrors"
 )
 
-const InboundTransferCreatedEventType = "InboundTransferCreated"
+const InboundTransferReceivedEventType = "InboundTransferReceived"
 
-type InboundTransferCreated struct {
+type InboundTransferReceived struct {
     Id           string `json:"id"`
     TransferType string `json:"type"`
     From         struct {
@@ -55,26 +55,26 @@ type InboundTransferCreated struct {
     } `json:"charge"`
 }
 
-func (t InboundTransferCreated) ID() string {
+func (t InboundTransferReceived) ID() string {
     return strconv.FormatInt(t.Details.OriginId, 10)
 }
 
-func (t InboundTransferCreated) Type() string {
-    return InboundTransferCreatedEventType
+func (t InboundTransferReceived) Type() string {
+    return InboundTransferReceivedEventType
 }
 
-func (t InboundTransferCreated) CorrelationID() string {
+func (t InboundTransferReceived) CorrelationID() string {
     return wuuid.NewUUID().String()
 }
 
-func (t InboundTransferCreated) DataContentType() string {
+func (t InboundTransferReceived) DataContentType() string {
     return "application/json"
 }
 
-func (t InboundTransferCreated) Serialize() ([]byte, error) {
-    return nil, werrors.NewNonRetryableInternalError("bind InboundTransferCreated is not serializable")
+func (t InboundTransferReceived) Serialize() ([]byte, error) {
+    return nil, werrors.NewNonRetryableInternalError("bind InboundTransferReceived is not serializable")
 }
 
-func (t InboundTransferCreated) Accept(ctx context.Context, handler EventsHandler) werrors.WError {
-    return handler.HandleInboundTransferCreated(ctx, t)
+func (t InboundTransferReceived) Accept(ctx context.Context, handler EventsHandler) werrors.WError {
+    return handler.HandleInboundTransferReceived(ctx, t)
 }
