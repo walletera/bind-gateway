@@ -11,7 +11,6 @@ import (
 
     "github.com/cucumber/godog"
     "github.com/walletera/bind-gateway/internal/app"
-    "github.com/walletera/eventskit/eventstoredb"
     "github.com/walletera/eventskit/rabbitmq"
     slogwatcher "github.com/walletera/logs-watcher/slog"
     msClient "github.com/walletera/mockserver-go-client/pkg/client"
@@ -71,22 +70,6 @@ func afterScenarioHook(ctx context.Context, _ *godog.Scenario, err error) (conte
 }
 
 func aRunningBindGateway(ctx context.Context) (context.Context, error) {
-
-    //ctx, err := esdbByCategoryProjectionEnabled(ctx)
-    //if err != nil {
-    //    return ctx, fmt.Errorf("failed enabling by-category projection: %w", err)
-    //}
-
-    ctx, err := anEventstoreDBPersistentSubscriptionForCategory(ctx, app.ESDB_ByCategoryProjection_OutboundPayment)
-    if err != nil {
-        return ctx, fmt.Errorf("failed creating persistent subscription for $ce-outboundPayment category on esdb: %w", err)
-    }
-
-    ctx, err = anEventstoreDBPersistentSubscriptionForCategory(ctx, app.ESDB_ByCategoryProjection_InboundPayment)
-    if err != nil {
-        return ctx, fmt.Errorf("failed creating persistent subscription for $ce-inboundPayment category on esdb: %w", err)
-    }
-
     logHandler := logsWatcherFromCtx(ctx).DecoratedHandler()
 
     appCtx, appCtxCancelFunc := context.WithCancel(ctx)
@@ -116,23 +99,6 @@ func aRunningBindGateway(ctx context.Context) (context.Context, error) {
     foundLogEntry := logsWatcherFromCtx(ctx).WaitFor("bind-gateway started", logsWatcherWaitForTimeout)
     if !foundLogEntry {
         return ctx, fmt.Errorf("app startup failed (didn't find expected log entry)")
-    }
-
-    return ctx, nil
-}
-
-func esdbByCategoryProjectionEnabled(ctx context.Context) (context.Context, error) {
-    err := eventstoredb.EnableByCategoryProjection(ctx, eventStoreDBUrl)
-    if err != nil {
-        return ctx, err
-    }
-    return ctx, nil
-}
-
-func anEventstoreDBPersistentSubscriptionForCategory(ctx context.Context, categoryName string) (context.Context, error) {
-    err := eventstoredb.CreatePersistentSubscription(eventStoreDBUrl, categoryName, app.ESDB_SubscriptionGroupName)
-    if err != nil {
-        return ctx, err
     }
 
     return ctx, nil

@@ -5,15 +5,19 @@ import (
     "context"
     "fmt"
     "net/http"
+    "regexp"
     "testing"
 
     "github.com/cucumber/godog"
     "github.com/walletera/bind-gateway/internal/app"
+    "github.com/walletera/bind-gateway/internal/domain/events/walletera/gateway/inbound"
+    "github.com/walletera/eventskit/eventstoredb"
 )
 
 const (
-    rawDinopayPaymentCreatedEventKey            = "rawDinopayPaymentCreatedEventKey"
+    rawBindTransferReceivedEventKey             = "rawBindTransferReceivedEventKey"
     paymentsCreateDepositEndpointExpectationKey = "paymentsCreateDepositEndpointExpectationKey"
+    accountsEndpointFailsAccountNotFound        = "accountEndpointFailsAccountNotFound"
     getAccountEndpointExpectationKey            = "getAccountEndpointExpectationKey"
 )
 
@@ -42,6 +46,8 @@ func InitializeProcessBindInboundTransferReceivedScenario(ctx *godog.ScenarioCon
     ctx.When(`^the webhook event is received$`, theWebhookEventIsReceived)
     ctx.Step(`^the bind-gateway creates the corresponding payment on the Payments API$`, theBindGatewayCreatesTheCorrespondingPaymentOnThePaymentsAPI)
     ctx.Step(`^the bind-gateway produces the following log:$`, theBindGatewayProducesTheFollowingLog)
+    ctx.Step(`^an accounts endpoint to get accounts that fails with account not found:$`, anAccountsEndpointToGetAccountsThatFailsWithAccountNotFound)
+    ctx.Step(`^the InboundPaymentReceived event is parked$`, theInboundPaymentReceivedEventIsParked)
     ctx.After(afterScenarioHook)
 }
 
@@ -49,7 +55,7 @@ func aBindTransferReceivedEvent(ctx context.Context, event *godog.DocString) (co
     if event == nil || len(event.Content) == 0 {
         return ctx, fmt.Errorf("the WithdrawalCreated event is empty or was not defined")
     }
-    return context.WithValue(ctx, rawDinopayPaymentCreatedEventKey, []byte(event.Content)), nil
+    return context.WithValue(ctx, rawBindTransferReceivedEventKey, []byte(event.Content)), nil
 }
 
 func anAccountsEndpointToGetAccounts(ctx context.Context, mockserverExpectation *godog.DocString) (context.Context, error) {
@@ -61,7 +67,7 @@ func aPaymentsEndpointToCreatePayments(ctx context.Context, mockserverExpectatio
 }
 
 func theWebhookEventIsReceived(ctx context.Context) (context.Context, error) {
-    rawEvent := ctx.Value(rawDinopayPaymentCreatedEventKey).([]byte)
+    rawEvent := ctx.Value(rawBindTransferReceivedEventKey).([]byte)
     url := fmt.Sprintf("http://127.0.0.1:%d/webhooks", app.WebhookServerPort)
     httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(rawEvent))
     if err != nil {
@@ -81,4 +87,43 @@ func theBindGatewayCreatesTheCorrespondingPaymentOnThePaymentsAPI(ctx context.Co
     id := expectationIdFromCtx(ctx, paymentsCreateDepositEndpointExpectationKey)
     err := verifyExpectationMetWithin(ctx, id, expectationTimeout)
     return ctx, err
+}
+
+func anAccountsEndpointToGetAccountsThatFailsWithAccountNotFound(ctx context.Context, mockserverExpectation *godog.DocString) (context.Context, error) {
+    return createMockServerExpectation(ctx, mockserverExpectation, accountsEndpointFailsAccountNotFound)
+}
+
+func theInboundPaymentReceivedEventIsParked(ctx context.Context) (context.Context, error) {
+    rawEvent := ctx.Value(rawBindTransferReceivedEventKey).([]byte)
+    reg := regexp.MustCompile("\"origin_id\": (\\d+),")
+    found := reg.FindSubmatch(rawEvent)
+    if found == nil || len(found) != 2 {
+        return ctx, fmt.Errorf("couldn't get origin id from raw bind transfer")
+    }
+    client, err := eventstoredb.GetESDBClient(eventStoreDBUrl)
+    if err != nil {
+        return ctx, err
+    }
+    db := eventstoredb.NewDB(client)
+    parkedEvents, err := db.ReadEvents(
+        ctx,
+        fmt.Sprintf("$persistentsubscription-%s::%s-parked", "$ce-bindGateway-inboundPayment", app.ESDB_SubscriptionGroupName),
+    )
+    if err != nil {
+        return ctx, err
+    }
+    if len(parkedEvents) == 0 {
+        return ctx, fmt.Errorf("no parked events originId")
+    }
+    if len(parkedEvents) > 1 {
+        return ctx, fmt.Errorf("multiple parked events originId")
+    }
+    event, err := inbound.NewEventsDeserializer().Deserialize(parkedEvents[0].RawEvent)
+    if err != nil {
+        return ctx, err
+    }
+    if event.Type() != inbound.PaymentReceivedType {
+        return ctx, fmt.Errorf("unexpected parked event type: %s", event.Type())
+    }
+    return ctx, nil
 }

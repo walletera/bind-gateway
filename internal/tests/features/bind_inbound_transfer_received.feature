@@ -174,3 +174,94 @@ Feature: process Bind webhook event transfer.cvu.received
     """
     gateway event InboundPaymentReceived processed successfully
     """
+
+  Scenario: a bind inbound transfer received fails due to account not found
+    Given a Bind transfer.cvu.received event:
+    """json
+    {
+      "id": "9f7e2845-2ca3-4787-826a-849f94ba469f",
+      "object": "",
+      "created": "2023-06-07T18:22:16.0498297",
+      "data": {
+        "id": "1-30717449076-000000005536667-1",
+        "type": "TRANSFER",
+        "from": {
+          "bank_id": "322",
+          "account_id": "20-1-735135-1-5"
+        },
+        "counterparty": {
+          "id": "20322204121",
+          "name": "Perez Juan",
+          "id_type": "CUIT_CUIL",
+          "bank_routing": {
+            "scheme": null,
+            "address": ""
+          },
+          "account_routing": {
+            "scheme": "CVU",
+            "address": "0000254900000000201403"
+          }
+        },
+        "details": {
+          "origin_id": 987654,
+          "origin_debit": {
+            "cvu": "0000547800000000201970",
+            "cuit": 20110006668
+          },
+          "origin_credit": {
+            "cvu": "0000347800000000201874",
+            "cuit": 23112223339
+          }
+        },
+        "transaction_ids": [
+          "1-30717449076-000000005536667-1",
+          "J3D5W612E7754YQNGXYVRL"
+        ],
+        "status": "COMPLETED",
+        "start_date": "2023-06-07T18:22:17",
+        "end_date": "2023-06-07T18:22:17",
+        "challenge": null,
+        "charge": {
+          "summary": "VAR primary",
+          "value": {
+            "currency": "ARS",
+            "amount": 80
+          }
+        }
+      },
+      "type": "transfer.cvu.received",
+      "redeliveries": 0
+    }
+    """
+    And  an accounts endpoint to get accounts that fails with account not found:
+    # the json below is a mockserver expectation
+    """json
+    {
+      "id": "getAccountSucceed",
+      "httpRequest" : {
+        "method": "GET",
+        "path": "/accounts",
+        "queryStringParameters": {
+            "accountType": ["cvu"],
+            "cvuAccountDetails[cvu]": ["0000347800000000201874"],
+            "cvuAccountDetails[cuit]": ["23112223339"]
+        }
+      },
+      "httpResponse" : {
+        "statusCode" : 404
+      },
+      "priority" : 0,
+      "timeToLive" : {
+        "unlimited" : true
+      },
+      "times" : {
+        "unlimited" : true
+      }
+    }
+    """
+    When the webhook event is received
+    Then the bind-gateway produces the following log:
+    """
+    failed processing InboundPaymentReceived event
+    """
+    And the InboundPaymentReceived event is parked

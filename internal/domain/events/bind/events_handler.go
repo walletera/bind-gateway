@@ -48,7 +48,7 @@ func (h *EventsHandlerImpl) HandleInboundTransferReceived(ctx context.Context, e
 
     inboundPaymentReceived := h.buildInboundPaymentReceivedEvent(correlationUUID, event)
 
-    streamName := h.buildInboundPaymentStreamName(inboundPaymentReceived.ID())
+    streamName := BuildInboundPaymentStreamName(inboundPaymentReceived.ID())
     werr := h.db.AppendEvents(ctx, streamName, eventsourcing.ExpectedAggregateVersion{IsNew: true}, inboundPaymentReceived)
     if werr != nil {
         h.logger.Error("error appending event to stream",
@@ -86,6 +86,6 @@ func (h *EventsHandlerImpl) buildInboundPaymentReceivedEvent(correlationUUID uui
     return inboundPaymentReceived
 }
 
-func (h *EventsHandlerImpl) buildInboundPaymentStreamName(id string) string {
+func BuildInboundPaymentStreamName(id string) string {
     return fmt.Sprintf("%s.%s", InboundPaymentStreamNamePrefix, id)
 }

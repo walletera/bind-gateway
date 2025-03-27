@@ -2,6 +2,7 @@ package inbound
 
 import (
     "context"
+    "fmt"
     "log/slog"
     "strconv"
     "time"
@@ -43,7 +44,7 @@ func (h *EventsHandlerImpl) HandleInboundPaymentReceived(ctx context.Context, in
     account, err := h.getBeneficiaryAccount(ctx, inboundPaymentReceived)
     if err != nil {
         h.logger.Error(
-            "failed getting beneficiary account",
+            wrappedErrMsg("failed getting beneficiary account"),
             logattr.CorrelationId(correlationId.String()),
             logattr.Error(err.Error()),
         )
@@ -60,7 +61,7 @@ func (h *EventsHandlerImpl) HandleInboundPaymentReceived(ctx context.Context, in
     })
     if postPaymentErr != nil {
         h.logger.Error(
-            "failed creating payment on payments api",
+            wrappedErrMsg("failed creating payment on payments api"),
             logattr.CorrelationId(correlationId.String()),
             logattr.Error(postPaymentErr.Error()),
         )
@@ -75,23 +76,23 @@ func (h *EventsHandlerImpl) HandleInboundPaymentReceived(ctx context.Context, in
         )
         return nil
     case *paymentsapi.PostPaymentInternalServerError:
-        h.logger.Error("failed creating payment on payments api",
+        h.logger.Error(wrappedErrMsg("failed creating payment on payments api"),
             logattr.CorrelationId(correlationId.String()),
             logattr.Error(r.ErrorMessage),
         )
         return werrors.NewRetryableInternalError(r.ErrorMessage)
     case *paymentsapi.PostPaymentBadRequest:
-        h.logger.Error("failed creating payment on payments api",
+        h.logger.Error(wrappedErrMsg("failed creating payment on payments api"),
             logattr.CorrelationId(correlationId.String()),
             logattr.Error(r.ErrorMessage))
         return werrors.NewNonRetryableInternalError(r.ErrorMessage)
     case *paymentsapi.PostPaymentConflict:
-        h.logger.Error("failed creating payment on payments api",
+        h.logger.Error(wrappedErrMsg("failed creating payment on payments api"),
             logattr.CorrelationId(correlationId.String()),
             logattr.Error(r.ErrorMessage))
         return werrors.NewNonRetryableInternalError(r.ErrorMessage)
     case *paymentsapi.PostPaymentUnauthorized:
-        h.logger.Error("failed creating payment on payments api: unauthorized")
+        h.logger.Error(wrappedErrMsg("failed creating payment on payments api: unauthorized"))
         return werrors.NewNonRetryableInternalError("failed creating payment on payments api",
             logattr.CorrelationId(correlationId.String()),
             logattr.Error("unauthorized"),
@@ -100,7 +101,7 @@ func (h *EventsHandlerImpl) HandleInboundPaymentReceived(ctx context.Context, in
         h.logger.Error("unexpected error creating payment on payments api",
             logattr.CorrelationId(correlationId.String()),
         )
-        return werrors.NewRetryableInternalError("unexpected error creating payment on payments api")
+        return werrors.NewRetryableInternalError(wrappedErrMsg("unexpected error creating payment on payments api"))
     }
 }
 
@@ -243,4 +244,8 @@ func (h *EventsHandlerImpl) buildPayment(correlationUUID uuid.UUID, event Paymen
         },
     }
     return payment
+}
+
+func wrappedErrMsg(msg string) string {
+    return fmt.Sprintf("failed processing InboundPaymentReceived event: %s", msg)
 }

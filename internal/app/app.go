@@ -6,6 +6,7 @@ import (
     "log/slog"
     "time"
 
+    "github.com/EventStore/EventStore-Client-Go/v4/esdb"
     accountsapi "github.com/walletera/accounts/types/api/api"
     bindhttpadapter "github.com/walletera/bind-gateway/internal/adapters/bind"
     "github.com/walletera/bind-gateway/internal/domain/events/bind"
@@ -122,12 +123,25 @@ func newZapLogger() (*zap.Logger, error) {
 }
 
 func (app *App) execESDBSetupTasks(_ context.Context) error {
-    err := eventstoredb.CreatePersistentSubscription(app.esdbUrl, ESDB_ByCategoryProjection_OutboundPayment, ESDB_SubscriptionGroupName)
+    subscriptionSettings := esdb.SubscriptionSettingsDefault()
+    subscriptionSettings.ResolveLinkTos = true
+
+    err := eventstoredb.CreatePersistentSubscription(
+        app.esdbUrl,
+        ESDB_ByCategoryProjection_OutboundPayment,
+        ESDB_SubscriptionGroupName,
+        subscriptionSettings,
+    )
     if err != nil {
         return fmt.Errorf("failed creating persistent subscription for %s: %w", ESDB_ByCategoryProjection_OutboundPayment, err)
     }
 
-    err = eventstoredb.CreatePersistentSubscription(app.esdbUrl, ESDB_ByCategoryProjection_InboundPayment, ESDB_SubscriptionGroupName)
+    err = eventstoredb.CreatePersistentSubscription(
+        app.esdbUrl,
+        ESDB_ByCategoryProjection_InboundPayment,
+        ESDB_SubscriptionGroupName,
+        subscriptionSettings,
+    )
     if err != nil {
         return fmt.Errorf("failed creating persistent subscription for %s: %w", ESDB_ByCategoryProjection_InboundPayment, err)
     }

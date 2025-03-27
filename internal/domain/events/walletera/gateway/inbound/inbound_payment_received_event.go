@@ -11,6 +11,8 @@ import (
     "github.com/walletera/werrors"
 )
 
+const PaymentReceivedType = "InboundPaymentReceived"
+
 var _ events.Event[EventsHandler] = &PaymentReceived{}
 
 type PaymentReceived struct {
@@ -31,7 +33,7 @@ func (p PaymentReceived) ID() string {
 }
 
 func (p PaymentReceived) Type() string {
-    return "InboundPaymentReceived"
+    return PaymentReceivedType
 }
 
 func (p PaymentReceived) DataContentType() string {

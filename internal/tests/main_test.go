@@ -29,13 +29,13 @@ func TestMain(m *testing.M) {
         panic("error starting esdb container: " + err.Error())
     }
 
-    enableByCategoryProjectionRequestCtx, _ := context.WithTimeout(ctx, 2*time.Second)
+    enableByCategoryProjectionRequestCtx, _ := context.WithTimeout(ctx, 5*time.Second)
     err = eventstoredb.EnableByCategoryProjection(enableByCategoryProjectionRequestCtx, eventStoreDBUrl)
     if err != nil {
         panic("failed enabling esdb by category projection: " + err.Error())
     }
 
-    setESDBByCategoryProjectionSeparatorRequestCtx, _ := context.WithTimeout(ctx, 2*time.Second)
+    setESDBByCategoryProjectionSeparatorRequestCtx, _ := context.WithTimeout(ctx, 5*time.Second)
     err = eventstoredb.SetESDBByCategoryProjectionSeparator(setESDBByCategoryProjectionSeparatorRequestCtx, eventStoreDBUrl)
     if err != nil {
         panic("failed setting esdb by category projection separator: " + err.Error())
@@ -73,7 +73,7 @@ func TestMain(m *testing.M) {
 
 func startEventStoreDBContainer(ctx context.Context) (func() error, error) {
     req := testcontainers.ContainerRequest{
-        Image: "eventstore/eventstore:21.10.7-buster-slim",
+        Image: "eventstore/eventstore:24.10",
         Name:  "esdb-node",
         Cmd:   []string{"--insecure", "--run-projections=All"},
         ExposedPorts: []string{
@@ -95,7 +95,7 @@ func startEventStoreDBContainer(ctx context.Context) (func() error, error) {
         Started:          true,
     })
     if err != nil {
-        return nil, fmt.Errorf("error creating rabbitmq container: %w", err)
+        return nil, fmt.Errorf("error creating esdb container: %w", err)
     }
 
     return func() error {
