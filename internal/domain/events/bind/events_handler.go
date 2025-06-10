@@ -10,7 +10,7 @@ import (
     "github.com/walletera/bind-gateway/pkg/logattr"
     "github.com/walletera/bind-gateway/pkg/wuuid"
     "github.com/walletera/eventskit/eventsourcing"
-    paymentsapi "github.com/walletera/payments-types/api"
+    paymentsapi "github.com/walletera/payments-types/privateapi"
     "github.com/walletera/werrors"
 )
 

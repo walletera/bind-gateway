@@ -40,8 +40,8 @@ func (ev *EventsHandler) HandlePaymentCreated(ctx context.Context, paymentCreate
 
     bindResp, err := ev.bindClient.CreateCVUTrasfer(ctx,
         &api.CreateTransferRequest{
-            CvuOrigen:     paymentCreated.Data.Debtor.Value.AccountDetails.Value.OneOf.CvuAccountDetails.Cvu.Value,
-            CbuCvuDestino: api.NewOptString(paymentCreated.Data.Beneficiary.Value.AccountDetails.Value.OneOf.CvuAccountDetails.Cvu.Value),
+            CvuOrigen:     paymentCreated.Data.Debtor.AccountDetails.OneOf.CvuAccountDetails.RoutingInfo.OneOf.CvuCvuRoutingInfo.Cvu,
+            CbuCvuDestino: api.NewOptString(paymentCreated.Data.Beneficiary.AccountDetails.OneOf.CvuAccountDetails.RoutingInfo.OneOf.CvuCvuRoutingInfo.Cvu),
             CuitDestino:   api.OptString{},
             AliasDestino:  api.OptString{},
             Importe:       paymentCreated.Data.Amount,

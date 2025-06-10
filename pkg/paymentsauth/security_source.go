@@ -3,7 +3,7 @@ package paymentsauth
 import (
     "context"
 
-    paymentsapi "github.com/walletera/payments-types/api"
+    paymentsapi "github.com/walletera/payments-types/privateapi"
 )
 
 type SecuritySource struct {

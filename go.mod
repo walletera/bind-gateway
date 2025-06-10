@@ -12,9 +12,9 @@ require (
 	github.com/testcontainers/testcontainers-go v0.30.0
 	github.com/walletera/accounts v0.0.1
 	github.com/walletera/eventskit v0.0.5
-	github.com/walletera/logs-watcher v0.0.3
+	github.com/walletera/logs-watcher v0.0.4
 	github.com/walletera/mockserver-go-client v0.0.1
-	github.com/walletera/payments-types v0.0.10
+	github.com/walletera/payments-types v0.0.16
 	github.com/walletera/werrors v0.0.7
 	go.opentelemetry.io/otel v1.29.0
 	go.opentelemetry.io/otel/metric v1.29.0

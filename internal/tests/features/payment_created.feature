@@ -24,19 +24,25 @@ Feature: process PaymentCreated event
         "debtor": {
           "institutionName": "Lemon Cash",
           "currency": "USD",
-          "accountType": "cvu",
           "accountDetails": {
-              "cvu": "0003252627188236545234",
-              "cuit": "23112223339"
+            "accountType": "cvu",
+            "cuit": "23112223339",
+            "routingInfo": {
+              "cvuRoutingInfoType": "cvu",
+              "cvu": "0003252627188236545234"
+            }
           }
         },
         "beneficiary": {
           "institutionName": "LetsBit",
           "currency": "USD",
-          "accountType": "cvu",
           "accountDetails": {
-              "cvu": "0004252627182736545234",
-              "cuit": "23112223339"
+            "accountType": "cvu",
+            "cuit": "23112223339",
+            "routingInfo": {
+              "cvuRoutingInfoType": "cvu",
+              "cvu": "0004252627182736545234"
+            }
           }
         },
         "createdAt": "2024-10-04T00:00:00Z"

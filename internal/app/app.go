@@ -14,13 +14,12 @@ import (
     "github.com/walletera/bind-gateway/internal/domain/events/walletera/gateway/outbound"
     "github.com/walletera/bind-gateway/internal/domain/events/walletera/payments"
     "github.com/walletera/bind-gateway/pkg/logattr"
-    "github.com/walletera/bind-gateway/pkg/paymentsauth"
     "github.com/walletera/eventskit/eventstoredb"
     "github.com/walletera/eventskit/messages"
     "github.com/walletera/eventskit/rabbitmq"
     "github.com/walletera/eventskit/webhook"
-    paymentsapi "github.com/walletera/payments-types/api"
     paymentsevents "github.com/walletera/payments-types/events"
+    paymentsapi "github.com/walletera/payments-types/privateapi"
     "github.com/walletera/werrors"
     "go.uber.org/zap"
     "go.uber.org/zap/exp/zapslog"
@@ -194,7 +193,7 @@ func createInboundFlowMessageProcessors(ctx context.Context, app *App) error {
         return fmt.Errorf("failed creating gateway inbound message processor: %w", err)
     }
 
-    gatewayInboundMessageProcessor.Start(ctx)
+    err = gatewayInboundMessageProcessor.Start(ctx)
     if err != nil {
         return fmt.Errorf("failed starting gateway inbound message processor: %w", err)
     }
@@ -233,7 +232,7 @@ func createPaymentsMessageProcessor(app *App) (*messages.Processor[paymentsevent
         return nil, fmt.Errorf("creating rabbitmq client: %w", err)
     }
 
-    paymentsMessageProcessor, err := messages.NewProcessor[paymentsevents.Handler](
+    paymentsMessageProcessor := messages.NewProcessor[paymentsevents.Handler](
         rabbitMQClient,
         paymentsevents.NewDeserializer(app.logger),
         handler,
@@ -241,17 +240,14 @@ func createPaymentsMessageProcessor(app *App) (*messages.Processor[paymentsevent
             app.logger.With(
                 logattr.Component("payments.rabbitmq.MessageProcessor")),
         ),
-    ), nil
-    if err != nil {
-        return nil, fmt.Errorf("failed creating payments rabbitmq processor: %w", err)
-    }
+    )
 
     return paymentsMessageProcessor, nil
 }
 
 func createGatewayOutboundMessageProcessor(app *App, logger *slog.Logger) (*messages.Processor[outbound.EventsHandler], error) {
 
-    paymentsClient, err := paymentsapi.NewClient(app.paymentsUrl, paymentsauth.NewSecuritySource())
+    paymentsClient, err := paymentsapi.NewClient(app.paymentsUrl)
     if err != nil {
         return nil, fmt.Errorf("failed creating payments api client: %w", err)
     }
@@ -291,7 +287,7 @@ func createBindMessageProcessor(app *App) (*messages.Processor[bind.EventsHandle
         return nil, fmt.Errorf("failed getting esdb client: %w", err)
     }
     eventsDB := eventstoredb.NewDB(esdbClient)
-    paymentsClient, err := paymentsapi.NewClient(app.paymentsUrl, paymentsauth.NewSecuritySource())
+    paymentsClient, err := paymentsapi.NewClient(app.paymentsUrl)
     if err != nil {
         return nil, fmt.Errorf("failed creating payments api client: %w", err)
     }
@@ -315,7 +311,7 @@ func createGatewayInboundMessageProcessor(app *App) (*messages.Processor[inbound
         return nil, fmt.Errorf("failed creating accounts api client: %w", err)
     }
 
-    paymentsClient, err := paymentsapi.NewClient(app.paymentsUrl, paymentsauth.NewSecuritySource())
+    paymentsClient, err := paymentsapi.NewClient(app.paymentsUrl)
     if err != nil {
         return nil, fmt.Errorf("failed creating payments api client: %w", err)
     }

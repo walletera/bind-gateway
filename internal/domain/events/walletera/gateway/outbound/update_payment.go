@@ -7,7 +7,7 @@ import (
 
     "github.com/google/uuid"
     "github.com/walletera/bind-gateway/pkg/bind/api"
-    paymentsapi "github.com/walletera/payments-types/api"
+    paymentsapi "github.com/walletera/payments-types/privateapi"
     "github.com/walletera/werrors"
 )
 
@@ -86,7 +86,7 @@ func handlePatchPaymentResponse(patchPaymentResp paymentsapi.PatchPaymentRes, pa
     case *paymentsapi.PatchPaymentInternalServerError:
         return werrors.NewNonRetryableInternalError(errMsg, resp.ErrorMessage)
     case *paymentsapi.PatchPaymentUnauthorized:
-        return werrors.NewNonRetryableInternalError(errMsg, resp.ErrorMessage)
+        return werrors.NewNonRetryableInternalError(errMsg, "unauthorized")
     default:
         return werrors.NewNonRetryableInternalError("failed updating payment in payments service: unknown error")
     }

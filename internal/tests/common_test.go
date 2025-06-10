@@ -123,14 +123,14 @@ func createMockServerExpectation(ctx context.Context, mockserverExpectation *god
     var unmarshalledExpectation MockServerExpectation
     err := json.Unmarshal(rawMockserverExpectation, &unmarshalledExpectation)
     if err != nil {
-        fmt.Errorf("error unmarshalling expectation: %w", err)
+        return ctx, fmt.Errorf("error unmarshalling expectation: %w", err)
     }
 
     ctx = context.WithValue(ctx, ctxKey, unmarshalledExpectation.ExpectationID)
 
     err = mockServerClient().CreateExpectation(ctx, rawMockserverExpectation)
     if err != nil {
-        fmt.Errorf("error creating mockserver expectations")
+        return ctx, fmt.Errorf("error creating mockserver expectations")
     }
 
     return ctx, nil

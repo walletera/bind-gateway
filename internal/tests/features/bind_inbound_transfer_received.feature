@@ -62,7 +62,7 @@ Feature: process Bind webhook event transfer.cvu.received
       "redeliveries": 0
     }
     """
-    And  an accounts endpoint to get accounts:
+    And an accounts endpoint to get accounts:
     # the json below is a mockserver expectation
     """json
     {
@@ -103,57 +103,88 @@ Feature: process Bind webhook event transfer.cvu.received
       }
     }
     """
-    And  a payments endpoint to create payments:
+    And a payments endpoint to create payments:
     # the json below is a mockserver expectation
     """json
     {
-      "id": "postDepositSucceed",
+      "id": "postPaymentSucceed",
       "httpRequest" : {
-        "method": "POST",
-        "path": "/payments",
-        "body": {
-            "type": "JSON",
-            "json": {
-              "id": "${json-unit.any-string}",
-              "amount": 80,
-              "currency": "ARS",
-              "customerId": "9fd3bc09-99da-4486-950a-11082f5fd966",
-              "externalId": "1234567",
-              "beneficiary": {
+          "method": "POST",
+          "path": "/payments",
+          "body": {
+              "type": "JSON",
+              "json": {
+                "id": "${json-unit.any-string}",
+                "amount": 80,
                 "currency": "ARS",
-                "accountType": "cvu",
-                "accountDetails": {
-                    "cvu": "0000347800000000201874",
-                    "cuit": "23112223339"
+                "customerId": "9fd3bc09-99da-4486-950a-11082f5fd966",
+                "externalId": "1234567",
+                "direction": "inbound",
+                "status": "confirmed",
+                "gateway": "bind",
+                "debtor": {
+                  "accountDetails": {
+                    "accountType": "cvu",
+                    "cuit": "20110006668",
+                    "routingInfo": {
+                      "cvuRoutingInfoType": "cvu",
+                      "cvu": "0000547800000000201970"
+                    }
+                  }
+                },
+                "beneficiary": {
+                  "accountDetails": {
+                    "accountType": "cvu",
+                    "cuit": "23112223339",
+                    "routingInfo": {
+                      "cvuRoutingInfoType": "cvu",
+                      "cvu": "0000347800000000201874"
+                    }
+                  }
                 }
               },
-              "debtor": {
-                "currency": "ARS",
-                "accountType": "cvu",
-                "accountDetails": {
-                    "cvu": "0000547800000000201970",
-                    "cuit": "20110006668"
-                }
-              }
-              },
-            "matchType": "ONLY_MATCHING_FIELDS"
-        }
-      },
-      "httpResponse" : {
-        "statusCode" : 201,
-        "headers" : {
-          "content-type" : [ "application/json" ]
+              "matchType": "ONLY_MATCHING_FIELDS"
+          }
         },
-        "body": {
-            "id": "01937863-163a-790f-8e59-707e152dd9c7",
+      "httpResponse" : {
+          "statusCode" : 201,
+          "headers" : {
+            "content-type" : [ "application/json" ]
+          },
+          "body": {
+            "id": "c33cd090-9c7a-4175-ad7c-cff28ed46d2a",
             "amount": 100,
             "currency": "USD",
-            "direction": "outbound",
             "customerId": "9fd3bc09-99da-4486-950a-11082f5fd966",
-            "externalId": "1234567",
+            "externalId": "bb17667e-daac-41f6-ada3-2c22f24caf22",
+            "direction": "inbound",
             "status": "confirmed",
-            "createdAt": "2024-11-29T14:46:19Z"
-        }
+            "gateway": "dinopay",
+            "debtor": {
+              "currency": "USD",
+              "accountDetails": {
+                "accountType": "cvu",
+                "cuit": "20110006668",
+                "routingInfo": {
+                  "cvuRoutingInfoType": "cvu",
+                  "cvu": "0000547800000000201970"
+                }
+              }
+            },
+            "beneficiary": {
+              "currency": "USD",
+               "accountDetails": {
+                  "accountType": "cvu",
+                  "cuit": "23112223339",
+                  "routingInfo": {
+                    "cvuRoutingInfoType": "cvu",
+                    "cvu": "0000347800000000201874"
+                  }
+                }
+            },
+            "createdAt": "2024-06-22T12:34:56Z",
+            "updatedAt": "2024-06-22T12:34:56Z"
+          }
       },
       "priority" : 0,
       "timeToLive" : {

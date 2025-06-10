@@ -5,13 +5,12 @@ import (
     "fmt"
     "log/slog"
     "strconv"
-    "time"
 
-    "github.com/google/uuid"
     accountsapi "github.com/walletera/accounts/types/api/api"
     "github.com/walletera/bind-gateway/pkg/logattr"
     "github.com/walletera/bind-gateway/pkg/wuuid"
-    paymentsapi "github.com/walletera/payments-types/api"
+    builders "github.com/walletera/payments-types/builders/privateapi"
+    paymentsapi "github.com/walletera/payments-types/privateapi"
     "github.com/walletera/werrors"
 )
 
@@ -51,9 +50,12 @@ func (h *EventsHandlerImpl) HandleInboundPaymentReceived(ctx context.Context, in
         return err
     }
 
-    payment := h.buildPayment(correlationId, inboundPaymentReceived, account)
+    postPaymentReq, err := h.buildPostPaymentReq(inboundPaymentReceived, account)
+    if err != nil {
+        return err
+    }
 
-    resp, postPaymentErr := h.paymentsApiClient.PostPayment(ctx, &payment, paymentsapi.PostPaymentParams{
+    resp, postPaymentErr := h.paymentsApiClient.PostPayment(ctx, &postPaymentReq, paymentsapi.PostPaymentParams{
         XWalleteraCorrelationID: paymentsapi.OptUUID{
             Value: inboundPaymentReceived.CorrelationId,
             Set:   true,
@@ -67,6 +69,7 @@ func (h *EventsHandlerImpl) HandleInboundPaymentReceived(ctx context.Context, in
         )
         return werrors.NewRetryableInternalError(postPaymentErr.Error())
     }
+
     switch r := resp.(type) {
     case *paymentsapi.Payment:
         h.logger.Info("gateway event InboundPaymentReceived processed successfully",
@@ -146,20 +149,28 @@ func (h *EventsHandlerImpl) getBeneficiaryAccount(ctx context.Context, event Pay
     }
 }
 
-func (h *EventsHandlerImpl) buildPayment(correlationUUID uuid.UUID, event PaymentReceived, account accountsapi.Account) paymentsapi.Payment {
+func (h *EventsHandlerImpl) buildPostPaymentReq(event PaymentReceived, account accountsapi.Account) (paymentsapi.PostPaymentReq, werrors.WError) {
     paymentUUID := wuuid.NewUUID()
-    payment := paymentsapi.Payment{
-        ID:       paymentUUID,
-        Amount:   event.ChargeValueAmount,
-        Currency: event.Currency,
-        Direction: paymentsapi.OptPaymentDirection{
-            Value: paymentsapi.PaymentDirectionInbound,
-            Set:   true,
-        },
-        CustomerId: paymentsapi.OptUUID{
-            Value: account.CustomerId,
-            Set:   true,
-        },
+    beneficiary, err := builders.NewCVUAccountBuilder().
+        WithCVU(event.OriginCreditCvu).
+        WithCUIT(strconv.FormatInt(event.OriginCreditCuit, 10)).
+        Build()
+    if err != nil {
+        return paymentsapi.PostPaymentReq{}, err
+    }
+    debtor, err := builders.NewCVUAccountBuilder().
+        WithCVU(event.OriginDebitCvu).
+        WithCUIT(strconv.FormatInt(event.OriginDebitCuit, 10)).
+        Build()
+    if err != nil {
+        return paymentsapi.PostPaymentReq{}, err
+    }
+    postPaymentReq := paymentsapi.PostPaymentReq{
+        ID:         paymentUUID,
+        Amount:     event.ChargeValueAmount,
+        Currency:   paymentsapi.Currency(event.Currency),
+        Direction:  paymentsapi.DirectionInbound,
+        CustomerId: account.CustomerId,
         ExternalId: paymentsapi.OptString{
             Value: strconv.FormatInt(event.OriginId, 10),
             Set:   true,
@@ -168,82 +179,12 @@ func (h *EventsHandlerImpl) buildPayment(correlationUUID uuid.UUID, event Paymen
             Value: event.CoelsaId,
             Set:   true,
         },
-        Beneficiary: paymentsapi.OptAccountDetails{
-            Value: paymentsapi.AccountDetails{
-                Currency: paymentsapi.OptString{
-                    Value: event.Currency,
-                    Set:   true,
-                },
-                AccountType: paymentsapi.OptAccountDetailsAccountType{
-                    Value: paymentsapi.AccountDetailsAccountTypeCvu,
-                    Set:   true,
-                },
-                AccountDetails: paymentsapi.OptAccountDetailsAccountDetails{
-                    Value: paymentsapi.AccountDetailsAccountDetails{
-                        OneOf: paymentsapi.AccountDetailsAccountDetailsSum{
-                            Type: paymentsapi.CvuAccountDetailsAccountDetailsAccountDetailsSum,
-                            CvuAccountDetails: paymentsapi.CvuAccountDetails{
-                                Cuit: paymentsapi.OptString{
-                                    Value: strconv.FormatInt(event.OriginCreditCuit, 10),
-                                    Set:   true,
-                                },
-                                Cvu: paymentsapi.OptString{
-                                    Value: event.OriginCreditCvu,
-                                    Set:   true,
-                                },
-                            },
-                        },
-                    },
-                    Set: true,
-                },
-            },
-            Set: true,
-        },
-        Debtor: paymentsapi.OptAccountDetails{
-            Value: paymentsapi.AccountDetails{
-                Currency: paymentsapi.OptString{
-                    Value: event.Currency,
-                    Set:   true,
-                },
-                AccountType: paymentsapi.OptAccountDetailsAccountType{
-                    Value: paymentsapi.AccountDetailsAccountTypeCvu,
-                    Set:   true,
-                },
-                AccountDetails: paymentsapi.OptAccountDetailsAccountDetails{
-                    Value: paymentsapi.AccountDetailsAccountDetails{
-                        OneOf: paymentsapi.AccountDetailsAccountDetailsSum{
-                            Type: paymentsapi.CvuAccountDetailsAccountDetailsAccountDetailsSum,
-                            CvuAccountDetails: paymentsapi.CvuAccountDetails{
-                                Cuit: paymentsapi.OptString{
-                                    Value: strconv.FormatInt(event.OriginDebitCuit, 10),
-                                    Set:   true,
-                                },
-                                Cvu: paymentsapi.OptString{
-                                    Value: event.OriginDebitCvu,
-                                    Set:   true,
-                                },
-                            },
-                        },
-                    },
-                    Set: true,
-                },
-            },
-            Set: true,
-        },
-        Status: paymentsapi.OptPaymentStatus{
-            Value: paymentsapi.PaymentStatusConfirmed,
-            Set:   true,
-        },
-        CreatedAt: paymentsapi.OptDateTime{
-            Value: time.Now(),
-            Set:   true,
-        },
-        UpdatedAt: paymentsapi.OptDateTime{
-            Value: time.Now(),
-            Set:   true,
-        },
+        Beneficiary: beneficiary,
+        Debtor:      debtor,
+        Status:      paymentsapi.PaymentStatusConfirmed,
+        Gateway:     paymentsapi.GatewayBind,
     }
-    return payment
+    return postPaymentReq, err
 }
 
 func wrappedErrMsg(msg string) string {
