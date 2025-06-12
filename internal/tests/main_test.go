@@ -80,11 +80,11 @@ func startEventStoreDBContainer(ctx context.Context) (func() error, error) {
             fmt.Sprintf("%s:%s", eventStoreDBPort, eventStoreDBPort),
         },
         WaitingFor: wait.
-            ForHTTP("/health/live").
+            ForHTTP("/projections/any").
             WithPort("2113/tcp").
             WithStartupTimeout(10 * time.Second).
             WithStatusCodeMatcher(func(status int) bool {
-                return status == http.StatusNoContent
+                return status == http.StatusOK
             }),
         LogConsumerCfg: &testcontainers.LogConsumerConfig{
             Consumers: []testcontainers.LogConsumer{NewContainerLogConsumer("esdb")},
