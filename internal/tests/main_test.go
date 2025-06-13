@@ -17,8 +17,8 @@ import (
 const (
     mockserverPort               = "2090"
     eventStoreDBPort             = "2113"
-    containersStartTimeout       = 30 * time.Second
-    containersTerminationTimeout = 10 * time.Second
+    containersStartTimeout       = 60 * time.Second
+    containersTerminationTimeout = 30 * time.Second
 )
 
 func TestMain(m *testing.M) {
