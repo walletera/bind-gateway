@@ -103,7 +103,7 @@ func startEventStoreDBContainer(ctx context.Context) (func() error, error) {
         defer terminationCtxCancel()
         terminationErr := esdbContainer.Terminate(terminationCtx)
         if terminationErr != nil {
-            return fmt.Errorf("failed terminating esdb container: %w", err)
+            return fmt.Errorf("failed terminating esdb container: %w", terminationErr)
         }
         return nil
     }, nil
